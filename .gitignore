@@ -1,0 +1,23 @@
+# Build Files #
+
+bin
+target
+build/
+.gradle
+
+# Vagrant #
+.vagrant
+
+# Files from Vagrant setup
+
+spark-2.2.0-bin-hadoop2.7.tgz
+spark-2.2.0-bin-hadoop2.7/
+pdal/
+geotrellis/
+
+# Emacs #
+
+.ensime
+\#*#
+*~
+.#*
