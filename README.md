@@ -2,9 +2,12 @@
 
 This demo provides a start-up guide for kicking the tires of GeoTrellis PointCloud support.
 
+![Screenshot](screenshot.png)
+
 __Note:__ Point Cloud support in GeoTrellis is a feature that is being developed; a good deal of functionality is there, but the project organization and API are not where they need to be.
-This means using it in it's current state will have quite the "rough around the edges feel.
+This means using it in it's current state will have a "rough around the edges" feel.
 We're committed to finishing these features and functionality based on use cases.
+
 
 ## Initializing the development environment
 
