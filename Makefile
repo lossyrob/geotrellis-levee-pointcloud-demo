@@ -7,7 +7,8 @@ build-pdal:
 	sudo apt-get install -y git
 	@if [ ! -d "pdal" ]; then git clone https://github.com/pdal/pdal; fi
 	@if [ ! -d "pdal/makefiles" ]; then mkdir pdal/makefiles; fi
-	@cd pdal/makefiles && \
+	@export JAVA_HOME=/usr/lib/jvm/java-8-oracle && \
+		cd pdal/makefiles && \
 	 	../../scripts/pdal-config.sh && \
 	 	$(MAKE) -j 2 && \
 	 	sudo $(MAKE) install
@@ -39,6 +40,7 @@ build-project:
 
 count-points:
 	spark-2.2.0-bin-hadoop2.7/bin/spark-submit \
+		--conf 'spark.driver.extraJavaOptions=-Djava.library.path=/usr/local/lib' \
 		--conf 'spark.executor.extraJavaOptions=-Djava.library.path=/usr/local/lib' \
 		--class com.azavea.demo.CountPoints \
 		target/scala-2.11/levee-pointcloud-demo.jar
@@ -46,13 +48,15 @@ count-points:
 ingest-dem:
 	spark-2.2.0-bin-hadoop2.7/bin/spark-submit \
 		--conf 'spark.driver.memory=5g' \
+		--conf 'spark.driver.extraJavaOptions=-Djava.library.path=/usr/local/lib' \
 		--conf 'spark.executor.extraJavaOptions=-Djava.library.path=/usr/local/lib' \
 		--class com.azavea.demo.IngestDEM \
 		target/scala-2.11/levee-pointcloud-demo.jar
 
-compute-veiwshed:
+compute-viewshed:
 	spark-2.2.0-bin-hadoop2.7/bin/spark-submit \
 		--conf 'spark.driver.memory=5g' \
+		--conf 'spark.driver.extraJavaOptions=-Djava.library.path=/usr/local/lib' \
 		--conf 'spark.executor.extraJavaOptions=-Djava.library.path=/usr/local/lib' \
 		--class com.azavea.demo.ComputeViewshed \
 		target/scala-2.11/levee-pointcloud-demo.jar

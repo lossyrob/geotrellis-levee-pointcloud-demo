@@ -29,7 +29,6 @@ libraryDependencies ++= Seq(
 // fullClasspath in run := (fullClasspath in (Compile, run)).value
 // fullClasspath in runMain := (fullClasspath in (Compile, run)).value
 run in Compile := Defaults.runTask(fullClasspath in Compile, mainClass in (Compile, run), runner in (Compile, run)).evaluated
-
 runMain in Compile := Defaults.runMainTask(fullClasspath in Compile, runner in(Compile, run)).evaluated
 
 //classpathConfiguration in run := Configurations.CompileInternal

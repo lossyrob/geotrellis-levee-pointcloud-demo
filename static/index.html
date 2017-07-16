@@ -14,7 +14,9 @@ body, #map {
 </div>
 <script type="text/javascript">
   //create the tile layers
-  var base = new L.tileLayer("http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png");
+  var base = new L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+     attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+ });
   var demLayer = new L.tileLayer("http://localhost:8080/tiles/levee-dem/{z}/{x}/{y}");
   var viewshedLayer = new L.tileLayer("http://localhost:8080/tiles/levee-viewshed/{z}/{x}/{y}");
   //link leaflet map with html
@@ -27,6 +29,7 @@ body, #map {
   };
   //add the layers to the map
   L.control.layers({}, overlayMaps, {collapsed: false}).addTo(map);
+  L.marker([29.343032, -90.252800]).addTo(map);
   base.addTo(map);
   overlayMaps.DEM.addTo(map);
 </script>

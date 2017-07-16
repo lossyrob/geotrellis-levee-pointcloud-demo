@@ -35,6 +35,7 @@ object ComputeViewshed {
     val numPartitions = 50
     val layerName = "levee-dem" // GeoTrellis Layer name
     val MAX_ZOOM = 18
+    val VIEWER_HEIGHT = 1.5 // Viewer height, in meters
     val viewshedLayerName = "levee-viewshed"
 
     // A point along the inside of the levee on the south west side.
@@ -46,7 +47,7 @@ object ComputeViewshed {
     // Transform to a coordinate, representing
     // viewing 1.5 meters above the surface.
     val coord =
-      new Coordinate(point.x, point.y, 1.5)
+      new Coordinate(point.x, point.y, VIEWER_HEIGHT)
 
     val conf = new SparkConf()
       .setIfMissing("spark.master", "local[*]")
