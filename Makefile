@@ -29,7 +29,18 @@ build-geotrellis:
 	@if [ ! -d "geotrellis" ]; then git clone https://github.com/locationtech/geotrellis; fi
 	@cd geotrellis && \
 		git checkout milestone/pointcloud && \
-		scripts/publish-local.sh
+		./sbt "project util" publish-local && \
+		./sbt "project macros" publish-local && \
+		./sbt "project pointcloud" publish-local && \
+		./sbt "project proj4" publish-local && \
+		./sbt "project vector" publish-local && \
+		./sbt "project raster" publish-local && \
+		./sbt "project spark" publish-local && \
+		./sbt "project spark-etl" publish-local && \
+		./sbt "project s3" publish-local && \
+		./sbt "project vectortile" publish-local && \
+		./sbt "project s3-testkit" publish-local
+
 
 get-spark:
 	@wget https://d3kbcqa49mib13.cloudfront.net/spark-2.2.0-bin-hadoop2.7.tgz
