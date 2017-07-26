@@ -24,8 +24,7 @@ object CountPoints {
     try {
       // Get test input file directory from configuration
       val testDir = {
-        val config = ConfigFactory.load()
-        val dataDir = config.getString("test-data-dir")
+        val dataDir = args(0)
         // Convert it to hadoop URI format
         new Path(s"file://$dataDir")
       }

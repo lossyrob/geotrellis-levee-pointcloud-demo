@@ -1,0 +1,37 @@
+#!/bin/bash
+#
+
+# ...
+
+#Set up to use system installed spark
+export SPARK_HOME=`pwd`/spark-2.2.0-bin-hadoop2.7/
+export PATH=`pwd`/spark-2.2.0-bin-hadoop2.7/bin/:$PATH
+
+# For local case, sparkmaster is local[*]
+
+export sparkmaster="local[*]"
+
+# ...
+
+#####
+# Run the application
+#####
+
+cd $RUN
+
+spark-submit --master ${sparkmaster} \
+             --conf 'spark.driver.extraJavaOptions=-Djava.library.path=/usr/local/lib' \
+	     --conf 'spark.executor.extraJavaOptions=-Djava.library.path=/usr/local/lib' \
+	     --class com.azavea.demo.CountPoints \
+	     ${RUN}/levee-pointcloud-demo.jar \
+             ${WORK}
+
+#####
+#Cleanup
+#####
+
+echo "*****"
+echo "Finished, Cleaning up"
+echo "*****"
+
+# ...

@@ -1,6 +1,9 @@
 download-data:
 	@./scripts/download-data.sh
 
+copy-data:
+	@cp -r data/* $(WORK)
+
 build-pdal:
 	sudo apt-get update
 	sudo scripts/install-pdal-dependencies.sh
@@ -41,28 +44,34 @@ build-geotrellis:
 		./sbt "project vectortile" publish-local && \
 		./sbt "project s3-testkit" publish-local
 
-
 get-spark:
 	@wget https://d3kbcqa49mib13.cloudfront.net/spark-2.2.0-bin-hadoop2.7.tgz
 	@tar -xzf spark-2.2.0-bin-hadoop2.7.tgz
 
+install-geopyspark: export SPARK_HOME=spark-2.2.0-bin-hadoop2.7/
+install-geopyspark:
+	sudo apt-get install -y python3-pip
+	pip3 install --user geopyspark==0.2.0rc2
+	geopyspark install-jar
+
 build-project:
 	@./sbt assembly
 
+copy-code:
+	@cp target/scala-2.11/levee-pointcloud-demo.jar $(RUN)
+	@cp src/main/python/* $(RUN)
+
 count-points:
-	spark-2.2.0-bin-hadoop2.7/bin/spark-submit \
-		--conf 'spark.driver.extraJavaOptions=-Djava.library.path=/usr/local/lib' \
-		--conf 'spark.executor.extraJavaOptions=-Djava.library.path=/usr/local/lib' \
-		--class com.azavea.demo.CountPoints \
-		target/scala-2.11/levee-pointcloud-demo.jar
+	scripts/run-count-points.pbs
+
+create-viz-layers:
+	scripts/run-create-viz-layers.pbs
+
+create-mock-layers:
+	scripts/run-create-mock-layers.pbs
 
 ingest-dem:
-	spark-2.2.0-bin-hadoop2.7/bin/spark-submit \
-		--conf 'spark.driver.memory=5g' \
-		--conf 'spark.driver.extraJavaOptions=-Djava.library.path=/usr/local/lib' \
-		--conf 'spark.executor.extraJavaOptions=-Djava.library.path=/usr/local/lib' \
-		--class com.azavea.demo.IngestDEM \
-		target/scala-2.11/levee-pointcloud-demo.jar
+	scripts/run-ingest-dem.pbs
 
 compute-viewshed:
 	spark-2.2.0-bin-hadoop2.7/bin/spark-submit \

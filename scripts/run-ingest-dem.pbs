@@ -1,0 +1,48 @@
+#!/bin/bash
+#
+
+# ...
+
+#Set up to use system installed spark
+export SPARK_HOME=`pwd`/spark-2.2.0-bin-hadoop2.7/
+export PATH=`pwd`/spark-2.2.0-bin-hadoop2.7/bin/:$PATH
+
+# For local case, sparkmaster is local[*]
+export sparkmaster="local[*]"
+
+# You may want to set extra spark submit parameters to
+# tune performance, based on nodes and memory capacity
+
+export EXTRA_SPARK_OPTIONS="--conf 'spark.driver.memory=5g'"
+
+export CELLSIZE=0.3333
+export CRS="EPSG:32615"
+
+# ...
+
+#####
+# Run the application
+#####
+
+cd $RUN
+
+spark-submit --master ${sparkmaster} \
+             ${EXTRA_SPARK_OPTIONS} \
+             --conf 'spark.driver.extraJavaOptions=-Djava.library.path=/usr/local/lib' \
+	     --conf 'spark.executor.extraJavaOptions=-Djava.library.path=/usr/local/lib' \
+	     --class com.azavea.demo.IngestDEM \
+             ${RUN}/levee-pointcloud-demo.jar \
+             -i ${WORK} \
+             -c ${RESULT}/catalog \
+             -s ${CELLSIZE} \
+             --crs ${CRS}
+
+#####
+#Cleanup
+#####
+
+echo "*****"
+echo "Finished, Cleaning up"
+echo "*****"
+
+# ...

@@ -1,0 +1,51 @@
+#!/bin/bash
+#
+
+# ...
+
+#Set up to use system installed spark
+export SPARK_HOME=`pwd`/spark-2.2.0-bin-hadoop2.7/
+export PATH=`pwd`/spark-2.2.0-bin-hadoop2.7/bin/:$PATH
+
+# For local case, sparkmaster is local[*]
+export sparkmaster="local[*]"
+
+# Need to set this on master and nodes for python 3 use.
+export PYSPARK_PYTHON=/usr/bin/python3
+
+# You may want to set extra spark submit parameters to
+# tune performance, based on nodes and memory capacity
+
+export EXTRA_SPARK_OPTIONS="--conf 'spark.driver.memory=5g'"
+
+export CATALOG_PATH=${RESULT}/catalog
+export INPUT_LAYER_NAMES=ingested-dsm
+export OUTPUT_LAYER_NAMES=ingested-dsm-viz
+export NUM_PARTITIONS=500
+
+# ...
+
+#####
+# Run the application
+#####
+
+cd $RUN
+
+spark-submit --master ${sparkmaster} \
+             ${EXTRA_SPARK_OPTIONS} \
+             --jars `geopyspark jar-path` \
+             ${RUN}/create-viz-layer.py \
+             ${CATALOG_PATH} \
+             --input_layers ${INPUT_LAYER_NAMES} \
+             --output_layers ${OUTPUT_LAYER_NAMES} \
+             --num_partitions ${NUM_PARTITIONS}
+
+#####
+#Cleanup
+#####
+
+echo "*****"
+echo "Finished, Cleaning up"
+echo "*****"
+
+# ...

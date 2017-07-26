@@ -36,6 +36,16 @@ Look at the `Makefile` to see what those steps are doing.
 _Note_: Expect the virtual machines to run slow with IO intensive tasks, such as building.
 The Scala build times are especially slow on the VM in my experience.
 
+## Directories
+
+Inside the Vagrant box, there will be directories that map
+to the directories of some other system to run the spark jobs.
+
+- `$WORK`: This is where the point cloud data to be processed will be places.
+- `$RUN`: This is where the code needed to run the processing will be placed.
+- `$RESULT`: This is where results will be places, including a GeoTrellis catalog of raster layers
+in `$RESULT/catalog`.
+
 ## Downloading the data
 
 Run
@@ -46,6 +56,12 @@ make download-data
 
 To download some example data, which is lidar from the USGS of
 a levee in Barataria Bay, Louisiana.
+
+To copy the data into `$WORK`, run
+
+```
+make copy-data
+```
 
 ## Install PDAL JNI bindings.
 
@@ -90,6 +106,12 @@ through spark-submit as spark jobs.
 make build-project
 ```
 
+To copy the JAR into `$RUN`, run
+
+```
+make copy-code
+```
+
 ## Check to see that PDAL bindings are working
 
 This will execute the CountPoints.scala code in the project,
@@ -97,8 +119,10 @@ counting the points in our test data and proving that everything
 is installed correctly. If there are issues here, the ingest and viewshed
 jobs won't run.
 
+Make sure all data and code is copied into `$WORK` and `$RUN`
+
 ```
-make count-points
+scripts/run-count-points.pbs
 ```
 
 ## Ingest our lidar data into DEM
@@ -108,9 +132,6 @@ and saves the raster tiles out to a GeoTrellis layer. A GeoTrellis layer of tile
 space-filling curve indexed tile set that allows GeoTrellis code to quickly retrieve individual tiles,
 collections of tiles or Spark RDD's of tiles, and perform operations on them.
 
-The layers this command creates is a set of pyramided layers in the "WebMercator" (EPSG:3857) CRS.
-This allows us to render the tiles per zoom level on a web map.
-
 It also saves off a histogram of the base layer, so that the tile server can understand how to render
 each tile according to the general distribution of values.
 
@@ -118,7 +139,13 @@ each tile according to the general distribution of values.
 make ingest-dem
 ```
 
-## Compute a viewshed on the ingested DEM
+## Create
+
+The layers this command creates is a set of pyramided layers in the "WebMercator" (EPSG:3857) CRS.
+This allows us to render the tiles per zoom level on a web map.
+
+
+## Compute a viewshed on the ingested DEM [TODO: FIX]
 
 This performs a veiwshed operation for a point along the southwest levee wall, at
 1.5 meters above the ground.

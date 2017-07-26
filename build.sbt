@@ -18,6 +18,7 @@ libraryDependencies ++= Seq(
   "org.locationtech.geotrellis" %% "geotrellis-pointcloud" % "1.2.0-PC-SNAPSHOT",
   "org.apache.spark" %% "spark-core"    % "2.2.0" % "provided",
   "org.apache.hadoop" % "hadoop-client" % "2.8.0" % "provided",
+  "com.github.scopt" %% "scopt" % "3.6.0",
 
   // For server
   "com.typesafe.akka" %% "akka-actor"           % "2.4.16" % "provided",
