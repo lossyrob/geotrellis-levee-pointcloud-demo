@@ -23,10 +23,16 @@ def create_viz_layers(catalog_path, input_layer_names, output_layer_names, num_p
                                            layout=gps.GlobalLayout(tile_size=256),
                                            resample_method=gps.ResampleMethod.BILINEAR)
 
-        pyramided = reprojected.pyramid()
+        reprojected.persist()
+        histogram_dict = reprojected.get_histogram().to_dict()
+        store = gps.geotrellis.catalog.AttributeStore(catalog_uri)
+        store.layer(output_layer_name, 0).write("histogram", histogram_dict)
 
+        pyramided = reprojected.pyramid()
         for tiled in pyramided.levels.values():
             gps.write(catalog_uri, output_layer_name, tiled)
+
+        reprojected.unpersist()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Create a viz layer from ingested layers.')
