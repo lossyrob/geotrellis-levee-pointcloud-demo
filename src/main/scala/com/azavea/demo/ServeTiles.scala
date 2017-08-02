@@ -11,12 +11,17 @@ import geotrellis.raster._
 import geotrellis.raster.io._
 import geotrellis.raster.render._
 import geotrellis.raster.histogram.Histogram
-import geotrellis.spark.{LayerId, SpatialKey}
+import geotrellis.proj4._
+import geotrellis.vector._
+import geotrellis.vector.io._
+import geotrellis.vector.io.json._
+import geotrellis.spark.{LayerId, SpatialKey, TileLayerMetadata}
 import geotrellis.spark.io._
 import geotrellis.spark.io.file._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.util.{Try, Success, Failure}
 
 object AkkaSystem {
   implicit val system = ActorSystem("levee-pointcloud-demo")
@@ -39,23 +44,26 @@ object ServeTiles extends Directives {
   val tileReader = FileValueReader(attributeStore)
 
   // Functions for each layer that go from a color ramp to a color map
-  val colorMaps: Map[String, ColorRamp => ColorMap] =
-    attributeStore
-      .layerIds
-      .map { id => id.name }
-      .distinct
-      .map { layerName =>
-        val histogram = attributeStore.read[Histogram[Double]](LayerId(layerName, 0), "histogram")
-      val breaks = histogram.quantileBreaks(20)
-      val colorMapFunc =
-        { ramp: ColorRamp =>
-          ramp
-            .toColorMap(breaks, ColorMap.Options(fallbackColor = ramp.colors.last))
-        }
+  var colorMaps: Map[String, ColorRamp => ColorMap] = Map.empty
 
-        layerName -> colorMapFunc
+  def getColorFunc(layerName: String): ColorRamp => ColorMap = {
+    colorMaps.get(layerName).getOrElse {
+      // throws if histogram can't be read
+      val histogram = attributeStore.read[Histogram[Double]](LayerId(layerName, 0), "histogram")
+      val breaks = histogram.quantileBreaks(20)
+      val colorMapFunc = { ramp: ColorRamp =>
+        ramp.toColorMap(breaks, ColorMap.Options(fallbackColor = ramp.colors.last))
       }
-      .toMap
+
+      val layerPolygon = attributeStore.readMetadata[TileLayerMetadata[SpatialKey]](LayerId(layerName, 0))
+        .extent.reproject(WebMercator, LatLng).toPolygon.toGeoJson
+
+      // give us something to drop into geojson.io to find the layer
+      println(s"Layer: $layerName at $layerPolygon")
+      colorMaps = colorMaps.updated(layerName, colorMapFunc)
+      colorMapFunc
+    }
+  }
 
   def main(args: Array[String]): Unit = {
     Http().bindAndHandle(routes, "0.0.0.0", 8080)
@@ -77,14 +85,10 @@ object ServeTiles extends Directives {
         complete {
           Future {
             val tileOpt =
-              try {
-                Some(tileReader.reader[SpatialKey, Tile](layerId).read(key))
-              } catch {
-                case e: ValueNotFoundError =>
-                  None
-              }
+              Try(tileReader.reader[SpatialKey, MultibandTile](layerId).read(key)).toOption
             tileOpt.map { tile =>
-              val png = tile.renderPng(colorMaps(layerName)(colorRamp))
+              val colorMap = getColorFunc(layerName)(colorRamp)
+              val png = tile.band(0).renderPng(colorMap)
               HttpResponse(entity = HttpEntity(ContentType(MediaTypes.`image/png`), png.bytes))
             }
           }
