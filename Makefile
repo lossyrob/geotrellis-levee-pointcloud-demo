@@ -67,7 +67,7 @@ count-points:
 create-viz-layers:
 	scripts/run-create-viz-layers.pbs
 
-create-mock-layers:
+mock-dem:
 	scripts/run-create-mock-layers.pbs
 
 ingest-dem:

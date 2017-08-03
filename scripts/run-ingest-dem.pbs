@@ -34,7 +34,8 @@ spark-submit --master ${sparkmaster} \
              ${RUN}/levee-pointcloud-demo.jar \
              -i ${WORK} \
              -c ${RESULT}/catalog \
-             -s ${CELLSIZE} \
+             -n levee-dem \
+             -s ${CELLSIZE}
              --crs ${CRS}
 
 #####

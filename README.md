@@ -139,19 +139,35 @@ each tile according to the general distribution of values.
 make ingest-dem
 ```
 
-## Create
-
-The layers this command creates is a set of pyramided layers in the "WebMercator" (EPSG:3857) CRS.
-This allows us to render the tiles per zoom level on a web map.
-
-
-## Compute a viewshed on the ingested DEM [TODO: FIX]
+## Compute a viewshed on the ingested DEM
 
 This performs a veiwshed operation for a point along the southwest levee wall, at
-1.5 meters above the ground.
+1.5 meters above the ground. This command is going to compute the viewshed and build
+the vizualization pyramid using Scala.
 
 ```
 make compute-viewshed
+```
+
+## Create Mock Layer
+
+Create a layer that is based on ingested DEM so we can use it in an operation before
+creating vizualization pyramid. For the mock layer we're going to compute the mean of the layer,
+and add the deviation from the mean to the values using numpy operations.
+
+
+``` shell
+make mock-dem
+```
+
+## Create Visual Pyramid
+
+The layers this command creates is a set of pyramided layers in the "WebMercator" (EPSG:3857) CRS.
+This allows us to render the tiles per zoom level on a web map.
+The pyramids are constructed with GeoPySpark.
+
+``` shell
+make create-viz-layers
 ```
 
 ## Start up a server that will show the DEM and viewshed on a web map
@@ -160,6 +176,9 @@ Included in the project is a small set of code that acts as a tile server,
 which can render and serve up PNG tiles based on `{z}/{x}/{y}` calls that
 are standard on web maps. It uses `akka-http`, and is
 a small example of the actual tile servers typical in GeoTrellis development.
+
+The levee dem will be served from `http://localhost:8080/tiles/levee-dem-viz/{z}/{x}/{y}`
+On first request the server will generate GeoJSON for layer bounding box to help locate it.
 
 ```
 make serve-tiles

@@ -11,7 +11,7 @@ export PATH=`pwd`/spark-2.2.0-bin-hadoop2.7/bin/:$PATH
 export sparkmaster="local[*]"
 
 # Need to set this on master and nodes for python 3 use.
-export PYSPARK_PYTHON=/usr/bin/python3
+export PYSPARK_PYTHON=python3
 
 # You may want to set extra spark submit parameters to
 # tune performance, based on nodes and memory capacity
@@ -19,8 +19,8 @@ export PYSPARK_PYTHON=/usr/bin/python3
 export EXTRA_SPARK_OPTIONS="--conf 'spark.driver.memory=5g'"
 
 export CATALOG_PATH=${RESULT}/catalog
-export INPUT_LAYER_NAMES=ingested-dsm
-export OUTPUT_LAYER_NAMES=ingested-dsm-viz
+export INPUT_LAYER_NAMES="levee-dem"
+export OUTPUT_LAYER_NAMES="levee-dem-viz"
 export NUM_PARTITIONS=500
 
 # ...

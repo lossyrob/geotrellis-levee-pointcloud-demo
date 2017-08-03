@@ -52,7 +52,8 @@ def create_mock_layers(catalog_path, input_layer_names, output_layer_names, num_
             masked = np.ma.masked_where(data == tile.no_data_value, data)
             masked_deviated = masked + (masked - mean)
             result = np.full(data.shape, tile.no_data_value)
-            result[np.ma.where(data != tile.no_data_value)] = masked_dev[np.ma.where(data != tile.no_data_value)]
+            result[np.ma.where(data != tile.no_data_value)] = \
+                masked_deviated[np.ma.where(data != tile.no_data_value)]
 
             return gps.Tile.from_numpy_array(np.array([result]), no_data_value=tile.no_data_value)
 
@@ -61,6 +62,7 @@ def create_mock_layers(catalog_path, input_layer_names, output_layer_names, num_
         result = gps.TiledRasterLayer.from_numpy_rdd(gps.LayerType.SPATIAL, deviated, layer_metadata)
 
         gps.write(catalog_uri, output_layer_name, result)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Create a mock layer from ingested DEM layers.')
