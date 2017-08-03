@@ -30,6 +30,7 @@ def create_viz_layers(catalog_path, input_layer_names, output_layer_names, num_p
 
         pyramided = reprojected.pyramid()
         for tiled in pyramided.levels.values():
+            store.layer(output_layer_name, tiled.zoom_level).delete('metadata')
             gps.write(catalog_uri, output_layer_name, tiled)
 
         reprojected.unpersist()
