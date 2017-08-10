@@ -101,18 +101,9 @@ object ComputeViewshed {
         histogram
       )
 
-      // Save off the viewshed, in a layer pyramid so we can see it on the map.
-      Pyramid.upLevels(
-        viewshed,
-        ZoomedLayoutScheme(WebMercator),
-        MAX_ZOOM,
-        0,
-        Pyramid.Options(resampleMethod = Bilinear)
-      ) { (pyramidLayer, pyramidZoomLevel) =>
-        val layerId = LayerId(viewshedLayerName, pyramidZoomLevel)
-        if(attributeStore.layerExists(layerId)) { layerDeleter.delete(layerId) }
-        layerWriter.write(layerId, pyramidLayer, ZCurveKeyIndexMethod)
-      }
+      val layerId = LayerId(viewshedLayerName, 0)
+      if(attributeStore.layerExists(layerId)) { layerDeleter.delete(layerId) }
+      layerWriter.write(layerId, viewshed, ZCurveKeyIndexMethod)
 
     } finally {
       sc.stop()
