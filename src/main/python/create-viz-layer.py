@@ -17,23 +17,23 @@ def create_viz_layers(catalog_path, input_layer_names, output_layer_names, num_p
     print("Catalog: {}".format(catalog_uri))
 
     for input_layer_name, output_layer_name in zip(input_layer_names, output_layer_names):
-        layer = gps.query(gps.LayerType.SPATIAL, catalog_uri, input_layer_name, 0, num_partitions=num_partitions)
+        layer = gps.query(catalog_uri, input_layer_name, 0, num_partitions=num_partitions)
 
         reprojected = layer.tile_to_layout(target_crs="EPSG:3857",
                                            layout=gps.GlobalLayout(tile_size=256),
                                            resample_method=gps.ResampleMethod.BILINEAR)
 
-        reprojected.persist()
-        histogram_dict = reprojected.get_histogram().to_dict()
+        # carry forward the histogram from original layer
         store = gps.geotrellis.catalog.AttributeStore(catalog_uri)
+        histogram_dict = store.layer(input_layer_name, 0).read("histogram")
         store.layer(output_layer_name, 0).write("histogram", histogram_dict)
 
+        # pyramid and save reprojected layer
         pyramided = reprojected.pyramid()
         for tiled in pyramided.levels.values():
             store.layer(output_layer_name, tiled.zoom_level).delete('metadata')
             gps.write(catalog_uri, output_layer_name, tiled)
 
-        reprojected.unpersist()
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Create a viz layer from ingested layers.')
