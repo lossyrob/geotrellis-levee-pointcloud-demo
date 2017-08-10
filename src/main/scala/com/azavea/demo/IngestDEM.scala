@@ -248,6 +248,11 @@ object IngestDEM {
       /**** Write the DEM raster layer to the GeoTrellis file backend *****/
 
       val writer = FileLayerWriter(catalogDir)
+      val attributeStore = AttributeStore(catalogDir)
+
+      layer.cache()
+      val histogram = layer.histogram(64)
+      attributeStore.write(LayerId(layerName, 0), "histogram", histogram)
 
       writer.write(LayerId(layerName, 0), layer, ZCurveKeyIndexMethod)
     } finally {
