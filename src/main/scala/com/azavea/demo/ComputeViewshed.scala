@@ -9,6 +9,7 @@ import geotrellis.proj4.{LatLng, WebMercator}
 import geotrellis.raster._
 import geotrellis.raster.io._
 import geotrellis.raster.resample.Bilinear
+import geotrellis.raster.reproject.Reproject
 import geotrellis.spark._
 import geotrellis.spark.tiling._
 import geotrellis.spark.io._
@@ -23,7 +24,7 @@ import org.apache.spark._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.serializer.KryoSerializer
 import spire.syntax.cfor._
-
+import spray.json.DefaultJsonProtocol._
 import scala.collection.mutable
 
 import IterativeViewshed._
@@ -38,16 +39,6 @@ object ComputeViewshed {
     val VIEWER_HEIGHT = 1.5 // Viewer height, in meters
     val viewshedLayerName = "levee-viewshed"
 
-    // A point along the inside of the levee on the south west side.
-    // Need to reproject to the CRS of the raster layer.
-    val point =
-      Point(-90.252800, 29.343032)
-        .reproject(LatLng, WebMercator)
-
-    // Transform to a coordinate, representing
-    // viewing 1.5 meters above the surface.
-    val coord =
-      new Coordinate(point.x, point.y, VIEWER_HEIGHT)
 
     val conf = new SparkConf()
       .setIfMissing("spark.master", "local[*]")
@@ -69,19 +60,41 @@ object ComputeViewshed {
       val layerDeleter = FileLayerDeleter(catalogDir)
       val attributeStore = layerWriter.attributeStore
 
-      val layer =
-        layerReader.read[SpatialKey, Tile, TileLayerMetadata[SpatialKey]](LayerId(layerName, MAX_ZOOM))
+      // input layer is not part of a pyramid
+      val layer = layerReader.read[SpatialKey, Tile, TileLayerMetadata[SpatialKey]](LayerId(layerName, 0))
 
-      val viewshed =
-        layer.viewshed(Seq[Coordinate](coord))
+      // compute layout for the base of th visualization pyramid
+      val layoutScheme = ZoomedLayoutScheme(WebMercator)
+      val LayoutLevel(_, targetLayout) = layoutScheme.levelForZoom(MAX_ZOOM)
+
+      // we must reproject the layer to 3857 to make a viz layer
+      val (_, base) = layer.reproject(WebMercator, targetLayout, Reproject.Options(method = Bilinear))
+
+      // A point along the inside of the levee on the south west side.
+      // Need to reproject to the CRS of the raster layer.
+      val point = Point(-90.24889290332794, 29.343082791891305)
+
+        .reproject(LatLng, layer.metadata.crs)
+
+      val viewPoint = IterativeViewshed.Point6D(
+        point.x, point.y,
+        viewHeight = 1.5,
+        angle = 0,
+        fieldOfView = 2*math.Pi ,
+        altitude = Double.NegativeInfinity)
+
+      val viewshed = layer.viewshed(Seq(viewPoint))
 
       // Delete layer at zoom level 0 if it exists
       if(attributeStore.layerExists(LayerId(viewshedLayerName, 0))) {
         layerDeleter.delete(LayerId(viewshedLayerName, 0))
       }
 
+      viewshed.cache()
+
       // Compute a histogram of the data, we will use that for visualization
       val histogram = viewshed.histogram(20)
+      println("MinMax: " + histogram.minMaxValues())
       attributeStore.write(
         LayerId(viewshedLayerName, 0),
         "histogram",
