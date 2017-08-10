@@ -19,9 +19,10 @@ export PYSPARK_PYTHON=python3
 export EXTRA_SPARK_OPTIONS="--conf 'spark.driver.memory=5g'"
 
 export CATALOG_PATH=${RESULT}/catalog
-export INPUT_LAYER_NAMES="levee-dem"
-export OUTPUT_LAYER_NAMES="levee-dem-viz"
+export INPUT_LAYER_NAMES=$1
+export OUTPUT_LAYER_NAMES=$2
 export NUM_PARTITIONS=500
+echo "Creating viz layer for $1 as $2"
 
 # ...
 
@@ -32,6 +33,7 @@ export NUM_PARTITIONS=500
 cd $RUN
 
 spark-submit --master ${sparkmaster} \
+             --driver-memory 5g \
              ${EXTRA_SPARK_OPTIONS} \
              --jars `geopyspark jar-path` \
              ${RUN}/create-viz-layer.py \
