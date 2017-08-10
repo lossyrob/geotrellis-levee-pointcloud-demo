@@ -146,7 +146,8 @@ object IngestDEM {
       val pipeline: PipelineConstructor =
         config.crs match {
           case Some(name) =>
-            Read("") ~ ReprojectionFilter("EPSG:32615")
+            println(s"Reprojecting to: ${config.crs}")
+            Read("") ~ ReprojectionFilter(outSrs=name)
           case None => Read("")
         }
 
@@ -239,7 +240,8 @@ object IngestDEM {
           case kb: KeyBounds[SpatialKey] => mapTransform(kb.toGridBounds)
           case EmptyBounds => sys.error("empty rdd")
         }
-      val md = TileLayerMetadata[SpatialKey](DoubleConstantNoDataCellType, layout, extent, WebMercator, bounds)
+
+      val md = TileLayerMetadata[SpatialKey](DoubleConstantNoDataCellType, layout, extent, CRS.fromName(config.crs.get), bounds)
 
       val layer = ContextRDD(tiles, md)
 
