@@ -16,7 +16,7 @@ export sparkmaster="local[*]"
 export EXTRA_SPARK_OPTIONS="--conf 'spark.driver.memory=5g'"
 
 export CELLSIZE=0.3333
-export CRS="EPSG:32615"
+export CRS="EPSG:26915" #UTM R15
 
 # ...
 
@@ -25,9 +25,13 @@ export CRS="EPSG:32615"
 #####
 
 cd $RUN
+echo "JAR: ${RUN}/levee-pointcloud-demo.jar"
+echo "WORK: ${WORK}"
+echo "CATALOG: ${RESULT}/catalog"
 
 spark-submit --master ${sparkmaster} \
              ${EXTRA_SPARK_OPTIONS} \
+             --driver-memory 5g \
              --conf 'spark.driver.extraJavaOptions=-Djava.library.path=/usr/local/lib' \
 	     --conf 'spark.executor.extraJavaOptions=-Djava.library.path=/usr/local/lib' \
 	     --class com.azavea.demo.IngestDEM \
@@ -35,7 +39,7 @@ spark-submit --master ${sparkmaster} \
              -i ${WORK} \
              -c ${RESULT}/catalog \
              -n levee-dem \
-             -s ${CELLSIZE}
+             -s ${CELLSIZE} \
              --crs ${CRS}
 
 #####
