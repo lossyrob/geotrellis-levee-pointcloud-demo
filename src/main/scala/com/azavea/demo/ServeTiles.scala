@@ -85,7 +85,14 @@ object ServeTiles extends Directives {
         complete {
           Future {
             val tileOpt =
-              Try(tileReader.reader[SpatialKey, MultibandTile](layerId).read(key)).toOption
+              Try(tileReader.reader[SpatialKey, MultibandTile](layerId).read(key)) match {
+                case Success(tile) =>
+                  Some(tile)
+                case Failure(e: ValueNotFoundError) =>
+                  None
+                case Failure(e) =>
+                  throw e
+              }
             tileOpt.map { tile =>
               val colorMap = getColorFunc(layerName)(colorRamp)
               val png = tile.band(0).renderPng(colorMap)
