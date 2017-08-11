@@ -174,6 +174,10 @@ make create-viewshed-viz
 make create-mock-viz
 ```
 
+### DEM Visualization
+![DEM](dem.png)
+
+
 ### Viewshed Visualization
 ![Viewshed](viewshed.png)
 
