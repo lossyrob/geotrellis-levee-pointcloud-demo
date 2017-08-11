@@ -18,11 +18,7 @@ def create_mock_layers(catalog_path, input_layer_names, output_layer_names, num_
     print("Catalog: {}".format(catalog_uri))
 
     for input_layer_name, output_layer_name in zip(input_layer_names, output_layer_names):
-        layer = gps.query(gps.LayerType.SPATIAL,
-                          catalog_uri,
-                          input_layer_name,
-                          0,
-                          num_partitions=num_partitions)
+        layer = gps.query(catalog_uri, input_layer_name, 0)
         layer_metadata = layer.layer_metadata
 
         # Compute the mean of the layer, and add the deviation
@@ -30,22 +26,13 @@ def create_mock_layers(catalog_path, input_layer_names, output_layer_names, num_
 
         rdd = layer.to_numpy_rdd()
 
-        def compute_mean(tile):
-            data = tile.cells[0]
 
-            masked = np.ma.masked_where(data == tile.no_data_value, data)
-            sum = np.sum(masked)
-            count = np.sum(data != tile.no_data_value)
+        store = gps.AttributeStore(catalog_uri)
+        hist = store.layer(input_layer_name, 0).read("histogram")
+        hist = gps.Histogram.from_dict(hist)
+        mean = hist.mean()
 
-            return (sum, count)
-
-        def reduce_mean(v1, v2):
-            return (v1[0] + v2[0], v1[1] + v2[1])
-
-        (sum, count) = rdd.map(lambda v: compute_mean(v[1])) \
-                          .reduce(reduce_mean)
-
-        mean = sum / count
+        print("Layer mean value: {}".format(mean))
 
         def transform_data(tile):
             data = tile.cells[0]
@@ -60,8 +47,14 @@ def create_mock_layers(catalog_path, input_layer_names, output_layer_names, num_
         deviated = rdd.mapValues(transform_data)
 
         result = gps.TiledRasterLayer.from_numpy_rdd(gps.LayerType.SPATIAL, deviated, layer_metadata)
+        result.cache()
+        result_hist = result.get_histogram()
+        print("Result mean value: {}".format(mean))
+        store.layer(output_layer_name, 0).write("histogram", result_hist.to_dict())
 
-        gps.write(catalog_uri, output_layer_name, result)
+        # Example of layer to layer operation: mock difference
+        difference = layer - result
+        gps.write(catalog_uri, output_layer_name, difference)
 
 
 if __name__ == "__main__":
