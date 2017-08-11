@@ -58,8 +58,9 @@ build-project:
 	@./sbt assembly
 
 copy-code:
-	@cp target/scala-2.11/levee-pointcloud-demo.jar $(RUN)
-	@cp src/main/python/* $(RUN)
+	@echo "CURDIR: $(CURDIR)"
+	cp target/scala-2.11/levee-pointcloud-demo.jar $(RUN)
+	cp src/main/python/* $(RUN)
 
 count-points:
 	scripts/run-count-points.pbs
