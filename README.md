@@ -18,7 +18,7 @@ such as [VirtualBox](https://www.virtualbox.org/).
 
 To bring up the vagrant box, in this directory:
 
-```
+```bash
 > vagrant up
 ```
 
@@ -26,7 +26,7 @@ _Note:_ You may want to mess around with the vb.memory and vb.cpu settings, if y
 
 Once the vagrant box is started, ssh inside of it
 
-```
+```bash
 vagrant ssh
 ```
 
@@ -50,7 +50,7 @@ in `$RESULT/catalog`.
 
 Run
 
-```
+```bash
 make download-data
 ```
 
@@ -59,7 +59,7 @@ a levee in Barataria Bay, Louisiana.
 
 To copy the data into `$WORK`, run
 
-```
+```bash
 make copy-data
 ```
 
@@ -70,7 +70,7 @@ GeoTrellis uses PDAL for all of it's pointcloud reading.
 We can also take advantage of filters in PDAL, for instance to reproject
 the points as we read them.
 
-```
+```bash
 make build-pdal
 ```
 
@@ -79,7 +79,7 @@ make build-pdal
 This command will clone the GeoTrellis repository, checkout the pointcloud feature branch,
 and publish binaries to the local ivy2 cache for use with the codebase in this repository.
 
-```
+```bash
 make build-geotrellis
 ```
 
@@ -87,7 +87,7 @@ make build-geotrellis
 
 This command downloads and unzips Spark, which we'll use to execute our jobs.
 
-```
+```bash
 make get-spark
 ```
 
@@ -102,13 +102,13 @@ can be used to process point cloud data.
 This command will build the project, and create the "uber-jar" that can be run
 through spark-submit as spark jobs.
 
-```
+```bash
 make build-project
 ```
 
 To copy the JAR into `$RUN`, run
 
-```
+```bash
 make copy-code
 ```
 
@@ -121,7 +121,7 @@ jobs won't run.
 
 Make sure all data and code is copied into `$WORK` and `$RUN`
 
-```
+```bash
 scripts/run-count-points.pbs
 ```
 
@@ -132,20 +132,20 @@ and saves the raster tiles out to a GeoTrellis layer. A GeoTrellis layer of tile
 space-filling curve indexed tile set that allows GeoTrellis code to quickly retrieve individual tiles,
 collections of tiles or Spark RDD's of tiles, and perform operations on them.
 
+This process uses PDAL pipeline to reproject points into UTM R15.
+
 It also saves off a histogram of the base layer, so that the tile server can understand how to render
 each tile according to the general distribution of values.
 
-```
+```bash
 make ingest-dem
 ```
 
 ## Compute a viewshed on the ingested DEM
 
-This performs a veiwshed operation for a point along the southwest levee wall, at
-1.5 meters above the ground. This command is going to compute the viewshed and build
-the vizualization pyramid using Scala.
+This performs a viewshed operation for a point along the southwest levee wall, at 1.5 meters above the ground.
 
-```
+```bash
 make compute-viewshed
 ```
 
@@ -155,8 +155,10 @@ Create a layer that is based on ingested DEM so we can use it in an operation be
 creating vizualization pyramid. For the mock layer we're going to compute the mean of the layer,
 and add the deviation from the mean to the values using numpy operations.
 
+We're going to subtract the produced layer from the source to simulate multi-layer operation.
 
-``` shell
+
+``` bash
 make mock-dem
 ```
 
@@ -166,9 +168,15 @@ The layers this command creates is a set of pyramided layers in the "WebMercator
 This allows us to render the tiles per zoom level on a web map.
 The pyramids are constructed with GeoPySpark.
 
-``` shell
-make create-viz-layers
+```bash
+make create-dem-viz
+make create-viewshed-viz
+make create-mock-viz
 ```
+
+### Viewshed Visualization
+![Viewshed](viewshed.png)
+
 
 ## Start up a server that will show the DEM and viewshed on a web map
 
@@ -177,11 +185,18 @@ which can render and serve up PNG tiles based on `{z}/{x}/{y}` calls that
 are standard on web maps. It uses `akka-http`, and is
 a small example of the actual tile servers typical in GeoTrellis development.
 
-The levee dem will be served from `http://localhost:8080/tiles/levee-dem-viz/{z}/{x}/{y}`
-On first request the server will generate GeoJSON for layer bounding box to help locate it.
-
-```
+```bash
 make serve-tiles
+```
+
+The levee dem will be served from `http://localhost:8080/tiles/levee-dem-viz/{z}/{x}/{y}`
+If using [http://geojson.io](http://geojson.io) the map can be located by this point:
+
+``` json
+{
+    "type": "Point",
+    "coordinates": [-90.24889290332794, 29.343082791891305]
+}
 ```
 
 ## Serve out the static content that shows the leaflet map
@@ -190,7 +205,7 @@ Also supplied is a small static page that shows a web map with a layer selector 
 allows you to put the DEM and viewshed layers on a map.
 While `serve-tiles` is still running (you'll have to start another `vagrant ssh` session), run:
 
-```
+```bash
 make serve-static
 ```
 

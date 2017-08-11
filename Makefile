@@ -64,8 +64,14 @@ copy-code:
 count-points:
 	scripts/run-count-points.pbs
 
-create-viz-layers:
-	scripts/run-create-viz-layers.pbs
+create-viewshed-viz:
+	scripts/run-create-viz-layers.pbs levee-viewshed levee-viewshed-viz
+
+create-dem-viz:
+	scripts/run-create-viz-layers.pbs levee-dem levee-dem-viz
+
+create-mock-viz:
+	scripts/run-create-viz-layers.pbs mock-dem mock-dem-viz
 
 mock-dem:
 	scripts/run-create-mock-layers.pbs

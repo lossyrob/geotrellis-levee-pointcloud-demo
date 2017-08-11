@@ -247,7 +247,7 @@ object IngestDEM {
 
       /**** Write the DEM raster layer to the GeoTrellis file backend *****/
 
-      val writer = FileLayerWriter(catalogDir)
+      val writer = LayerWriter(catalogDir)
       val attributeStore = AttributeStore(catalogDir)
 
       layer.cache()
