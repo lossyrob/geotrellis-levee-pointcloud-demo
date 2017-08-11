@@ -51,7 +51,7 @@ get-spark:
 install-geopyspark: export SPARK_HOME=spark-2.2.0-bin-hadoop2.7/
 install-geopyspark:
 	sudo apt-get install -y python3-pip
-	pip3 install --user geopyspark==0.2.0rc2
+	pip3 install --user geopyspark==0.2.0rc6
 	geopyspark install-jar
 
 build-project:
